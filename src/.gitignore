@@ -1,0 +1,6 @@
+/.vscode
+/chip8.exe
+/chip8.exe.stackdump
+CPU.o
+main.o
+Platform.o
