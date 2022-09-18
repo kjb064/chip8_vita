@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <psp2/ctrl.h>
 
 class Platform {
     public:
@@ -19,8 +20,19 @@ class Platform {
         SDL_Renderer* renderer{};
         SDL_Texture* texture{};
 
-        /** Updates the status of a key to pressed or released. */
-        void SetKeyStatus(uint8_t* keys, SDL_Keycode key_code, bool pressed);
+        /** 
+         * Enum to represent the keys on a Chip 8 keypad. 
+         * Enum values are important since they are used to index an array.
+         */
+        enum Control {
+            ONE,    TWO,    THREE,  C,
+            FOUR,   FIVE,   SIX,    D,
+            SEVEN,  EIGHT,  NINE,   E,
+            A,      ZERO,   B,      F
+        };
+
+        /** Updates the status of all keys to pressed or released. */
+        void SetKeyStatus(uint8_t* keys, SceCtrlData ctrl_data);
 
         /** Outputs an SDL error, frees resources, and causes the application to terminate. */
         void SDLError();

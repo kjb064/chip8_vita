@@ -6,8 +6,8 @@ Platform::Platform(std::string window_title, int x, int y) {
     window = SDL_CreateWindow(window_title.c_str(), 
                         SDL_WINDOWPOS_UNDEFINED, 
                         SDL_WINDOWPOS_UNDEFINED, 
-                        x * 10, 
-                        y * 10, 
+                        960, /** PS Vita screen: 960x544 */
+                        544, 
                         0);
     if (window == nullptr) this->SDLError();
 
@@ -40,104 +40,50 @@ void Platform::UpdateDisplay(uint32_t* pixels, int video_pitch) {
 }
 
 bool Platform::ProcessInput(uint8_t* keys) {
-    bool run = true;
-
-    SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    run = false;
-                    std::cout << "Quitting..." << std::endl;
-                break;
-
-                case SDL_KEYDOWN:
-                    SetKeyStatus(keys, event.key.keysym.sym, true);
-                break;
-
-                case SDL_KEYUP:
-                    SetKeyStatus(keys, event.key.keysym.sym, false);
-                break;
-            }
-        }
-        return run;
+    bool run = true;    
+    SceCtrlData ctrl_data;
+    sceCtrlPeekBufferPositive(0, &ctrl_data, 1);
+    if ((ctrl_data.buttons & SCE_CTRL_SELECT)) {
+        // Quit
+        run = false;
+    } else {
+        SetKeyStatus(keys, ctrl_data);
+    }
+    return run;
 }
 
-void Platform::SetKeyStatus(uint8_t* keys, SDL_Keycode key_code, bool pressed) {
-    /** 
-     *  Chip 8 Keypad             Keyboard
+void Platform::SetKeyStatus(uint8_t* keys, SceCtrlData ctrl_data) {
+    /**
+    *   Chip 8 Keypad             Vita Controls
         +-+-+-+-+                +-+-+-+-+
-        |1|2|3|C|                |1|2|3|4|
+        |1|2|3|C|                |U|R|D|Le|
         +-+-+-+-+                +-+-+-+-+
-        |4|5|6|D|                |Q|W|E|R|
+        |4|5|6|D|                |T|C|X|S|
         +-+-+-+-+       =>       +-+-+-+-+
-        |7|8|9|E|                |A|S|D|F|
+        |7|8|9|E|                |L+U|L+R|L+D|L+Le|
         +-+-+-+-+                +-+-+-+-+
-        |A|0|B|F|                |Z|X|C|V|
-        +-+-+-+-+                +-+-+-+-+
-    */
-    switch (key_code) {
-        case SDLK_1:
-            keys[0x0] = pressed;
-        break;
+        |A|0|B|F|                |L+T|L+C|L+X|L+S|
+        +-+-+-+-+ 
+   */
+    bool modifier_pressed = (ctrl_data.buttons & SCE_CTRL_LTRIGGER);
 
-        case SDLK_2:
-            keys[0x1] = pressed;
-        break;
+    keys[Control::ONE] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_UP);
+    keys[Control::TWO] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_RIGHT);
+    keys[Control::THREE] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_DOWN);
+    keys[Control::C] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_LEFT);
 
-        case SDLK_3:
-            keys[0x2] = pressed;
-        break;
+    keys[Control::FOUR] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_TRIANGLE);
+    keys[Control::FIVE] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_CIRCLE);
+    keys[Control::SIX] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_CROSS);
+    keys[Control::D] = !modifier_pressed && (ctrl_data.buttons & SCE_CTRL_SQUARE);
 
-        case SDLK_4:
-            keys[0x3] = pressed;
-        break;
+    keys[Control::SEVEN] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_UP);
+    keys[Control::EIGHT] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_RIGHT);
+    keys[Control::NINE] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_DOWN);
+    keys[Control::E] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_LEFT);
 
-        case SDLK_q:
-            keys[0x4] = pressed;
-        break;
-
-        case SDLK_w:
-            keys[0x5] = pressed;
-        break;
-
-        case SDLK_e:
-            keys[0x6] = pressed;
-        break;
-
-        case SDLK_r:
-            keys[0x7] = pressed;
-        break;
-
-        case SDLK_a:
-            keys[0x8] = pressed;
-        break;
-
-        case SDLK_s:
-            keys[0x9] = pressed;
-        break;
-
-        case SDLK_d:
-            keys[0xA] = pressed;
-        break;
-
-        case SDLK_f:
-            keys[0xB] = pressed;
-        break;
-
-        case SDLK_z:
-            keys[0xC] = pressed;
-        break;
-
-        case SDLK_x:
-            keys[0xD] = pressed;
-        break;
-
-        case SDLK_c:
-            keys[0xE] = pressed;
-        break;
-
-        case SDLK_v:
-            keys[0xF] = pressed;
-        break;
-    }
+    keys[Control::A] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_TRIANGLE);
+    keys[Control::ZERO] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_CIRCLE);
+    keys[Control::B] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_CROSS);
+    keys[Control::F] = modifier_pressed && (ctrl_data.buttons & SCE_CTRL_SQUARE);
 }

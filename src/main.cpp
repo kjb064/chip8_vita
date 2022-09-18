@@ -3,14 +3,6 @@
 #include "Platform.h"
 #include "CPU.h"
 
-/*
- * If 'main' is defined we clear that definition
- * to get our default 'main' function back.
- */
-#ifdef main
-# undef main
-#endif /* main */
-
 // TODO fix speed
 // TODO implement sound
 
@@ -22,12 +14,9 @@ int main(int argc, char *argv[]) {
 
     Platform platform("Chip8", DISPLAY_X, DISPLAY_Y);
 
-    std::cout << "Running..." << std::endl;
-    // Get file name argument from command line
-    std::string file_name = argv[1];
-
+    // TODO load roms from ux0:data
     CPU cpu;
-    cpu.LoadData(file_name);
+    cpu.LoadData("roms/Pong.ch8");
 
     auto lastCycleTime = std::chrono::high_resolution_clock::now();
     bool run = true;
@@ -37,7 +26,7 @@ int main(int argc, char *argv[]) {
         auto currentTime = std::chrono::high_resolution_clock::now();
 		float dt = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastCycleTime).count();
         
-        // TODO 1 is usual cycle delay here...
+        // TODO 1 is usual cycle delay here... Sometimes use 2 for more playable speed
         if (dt > 2) {
             lastCycleTime = currentTime;
             cpu.EmulateCycle();
